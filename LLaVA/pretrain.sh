@@ -1,12 +1,14 @@
 #!/bin/bash
 
-deepspeed --master_port 29505 --include  localhost:0,1,2,3,4,5,6,7 \
-    llava/train/train_mem.py \
-    --deepspeed PATH_TO_DEEPSPEED\
-    --model_name_or_path PATH_TO_VICUNAMODEL \
+model_name=llava-v1.5-7b
+version=rotation_v2
+
+deepspeed --master_port 29505 llava/train/train_mem.py \
+    --deepspeed scripts/zero3.json \
+    --model_name_or_path liuhaotian/$model_name\
     --version plain \
-    --data_path PATH_TO_PRETRAIN_DATA \
-    --image_folder PATH_TO_IMAGE_IN_DATA \
+    --data_path /svl/u/sunfanyun/sceneVerse/preprocessed/ProcThor/all_data_$version.json \
+    --image_folder / \
     --vision_tower openai/clip-vit-large-patch14-336 \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
@@ -14,7 +16,7 @@ deepspeed --master_port 29505 --include  localhost:0,1,2,3,4,5,6,7 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir PATH_TO_OUTPUT_DIRECTORY \
+    --output_dir ./checkpoints/$model_name-$version \
     --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 4 \

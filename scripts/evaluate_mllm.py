@@ -40,22 +40,34 @@ def eval_model(args):
     
     tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name)
     
-    benchmark_dir = os.path.join(args.directory, 'Questions.csv')
-    # Load and read the CSV
-    df = pd.read_csv(benchmark_dir)  # Assuming the fields are separated by tabs
-    answers_file = os.path.expanduser(args.answers_file)
-    # Check if the directory is specified in the path
-    if os.path.dirname(answers_file):
-        # Create the directory if it doesn't exist
-        os.makedirs(os.path.dirname(answers_file), exist_ok=True)
+    if args.directory:
+        benchmark_dir = os.path.join(args.directory, 'Questions.csv')
+        # Load and read the CSV
+        df = pd.read_csv(benchmark_dir)  # Assuming the fields are separated by tabs
+        answers_file = os.path.expanduser(args.answers_file)
+        # Check if the directory is specified in the path
+        if os.path.dirname(answers_file):
+            # Create the directory if it doesn't exist
+            os.makedirs(os.path.dirname(answers_file), exist_ok=True)
 
-    # Now open the file
-    ans_file = open(answers_file, "w")
+        # Now open the file
+        ans_file = open(answers_file, "w")
 
     # Loop through each row in the DataFrame
-    for index, row in tqdm(df.iterrows()):
+    #for index, row in tqdm(df.iterrows()):
+    all_data = json.load(open(args.question_file, "r"))
+    print('number of total entries in all_data', len(all_data))
+    for index in range(100):
+
         # Construct the 'prompts' string
 
+        # image_path = os.path.join(args.directory, 'MMVP Images', f"{photo_id}.jpg")
+        image_path = all_data[index]["image"]
+        row = {
+            'Question': "How many degrees did the object rotate for?",
+            'Options':  "Choose your answer from the following options: 0, 90, 180, 270. Output a single number." ,
+            'Answer': all_data[index]["conversations"][1]["value"]
+        }
         cur_prompt = row['Question'] + " " + row['Options']
         qs = cur_prompt
 
@@ -71,7 +83,6 @@ def eval_model(args):
 
         # Load the corresponding image
         photo_id = index+1
-        image_path = os.path.join(args.directory, 'MMVP Images', f"{photo_id}.jpg")
         image = Image.open(image_path)
 
         input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
@@ -115,14 +126,13 @@ def eval_model(args):
         ans_file.flush()
     ans_file.close()
 
-            
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", type=str, default="facebook/opt-350m")
-    parser.add_argument("--model-base", type=str, default=None)
-    parser.add_argument("--directory", type=str, default="")
-    parser.add_argument("--question-file", type=str, default="tables/question.jsonl")
+    parser.add_argument("--model-base", type=str, required=True)
+    parser.add_argument("--directory", type=str, default=None)
+    parser.add_argument("--question-file", type=str, default=None)
     parser.add_argument("--answers-file", type=str, default="answer.jsonl")
     parser.add_argument("--conv-mode", type=str, default="llava_v1")
     parser.add_argument("--num-chunks", type=int, default=1)
