@@ -11,7 +11,7 @@
 #SBATCH --account=viscam
 #################
 #set a job name
-#SBATCH --job-name="mmvp finetune"
+#SBATCH --job-name="mmvp train all"
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
 #SBATCH --output=../slurm_stdout/%j.out
@@ -63,21 +63,20 @@ cd LLaVA
 #!/bin/bash
 deepspeed  --master_port 29506 \
     llava/train/train_mem.py \
+    --lora_enable True --lora_r 128 --lora_alpha 256 \
     --deepspeed scripts/zero3.json \
     --model_name_or_path liuhaotian/$model_name \
     --version v1 \
     --data_path /svl/u/sunfanyun/sceneVerse/preprocessed/ProcThor/all_data_$version.json \
     --image_folder / \
     --vision_tower openai/clip-vit-large-patch14-336 \
-    --pretrain_mm_mlp_adapter PATH_TO_MM_ADAPTER \
-    --pretrain_dino_mm_mlp_adapter PATH_TO_DINO_ADAPTER \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --image_aspect_ratio pad \
     --bf16 True \
-    --output_dir ./checkpoints/$model_name-$version \
+    --output_dir ./checkpoints/$model_name-$version-train_all \
     --num_train_epochs 1 \
     --per_device_train_batch_size 11 \
     --per_device_eval_batch_size 4 \

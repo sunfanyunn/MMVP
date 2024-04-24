@@ -22,7 +22,7 @@ class CLIPVisionTower(nn.Module):
     def load_model(self):
         self.image_processor = CLIPImageProcessor.from_pretrained(self.vision_tower_name)
         self.vision_tower = CLIPVisionModel.from_pretrained(self.vision_tower_name)
-        print(self.vision_tower.state_dict())
+        # print(self.vision_tower.state_dict())
         self.vision_tower.requires_grad_(False)
 
         self.is_loaded = True

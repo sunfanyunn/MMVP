@@ -69,15 +69,15 @@ deepspeed  --master_port 29506 \
     --data_path /svl/u/sunfanyun/sceneVerse/preprocessed/ProcThor/all_data_$version.json \
     --image_folder / \
     --vision_tower openai/clip-vit-large-patch14-336 \
-    --pretrain_mm_mlp_adapter PATH_TO_MM_ADAPTER \
-    --pretrain_dino_mm_mlp_adapter PATH_TO_DINO_ADAPTER \
+    --pretrain_mm_mlp_adapter /svl/u/sunfanyun/GenLayout/third_party/MMVP/LLaVA/checkpoints/llava-v1.5-7b-rotation_v2-pretrain/mm_projector.bin \
+    --pretrain_dino_mm_mlp_adapter /svl/u/sunfanyun/GenLayout/third_party/MMVP/LLaVA/checkpoints/llava-v1.5-7b-rotation_v2-pretrain/dino_mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --image_aspect_ratio pad \
     --bf16 True \
-    --output_dir ./checkpoints/$model_name-$version \
+    --output_dir ./checkpoints/$model_name-$version-pretrain-finetune \
     --num_train_epochs 1 \
     --per_device_train_batch_size 11 \
     --per_device_eval_batch_size 4 \

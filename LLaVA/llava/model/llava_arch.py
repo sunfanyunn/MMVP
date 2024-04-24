@@ -181,7 +181,6 @@ class LlavaMetaForCausalLM(ABC):
         new_labels = [] if labels is not None else None
         cur_image_idx = 0
 
-
         for batch_idx, cur_input_ids in enumerate(input_ids):
 
             if (cur_input_ids == IMAGE_TOKEN_INDEX).sum() == 0:
@@ -205,6 +204,8 @@ class LlavaMetaForCausalLM(ABC):
                 cur_new_labels = []
                 assert cur_labels.shape == cur_input_ids.shape
 
+            print(image_token_indices)
+            import pdb;pdb.set_trace()
             while image_token_indices.numel() > 0:
 
                 cur_image_features_clip = image_features_clip[cur_image_idx]

@@ -73,7 +73,7 @@ deepspeed --master_port 29505 llava/train/train_mem.py \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir ./checkpoints/$model_name-$version \
+    --output_dir ./checkpoints/$model_name-$version-pretrain \
     --num_train_epochs 1 \
     --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 4 \

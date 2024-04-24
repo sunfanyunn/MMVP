@@ -57,19 +57,21 @@ def eval_model(args):
     #for index, row in tqdm(df.iterrows()):
     all_data = json.load(open(args.question_file, "r"))
     print('number of total entries in all_data', len(all_data))
+    print('evaluating on 100 entries ...')
     for index in range(100):
 
         # Construct the 'prompts' string
-
         # image_path = os.path.join(args.directory, 'MMVP Images', f"{photo_id}.jpg")
-        image_path = all_data[index]["image"]
-        row = {
-            'Question': "How many degrees did the object rotate for?",
-            'Options':  "Choose your answer from the following options: 0, 90, 180, 270. Output a single number." ,
-            'Answer': all_data[index]["conversations"][1]["value"]
-        }
-        cur_prompt = row['Question'] + " " + row['Options']
-        qs = cur_prompt
+        #row = {
+        #    'Question': "How many degrees did the object rotate for?",
+        #    'Options':  "Choose your answer from the following options: 0, 90, 180, 270. Output a single number." ,
+        #    'Answer': all_data[index]["conversations"][1]["value"]
+        #}
+        # cur_prompt = row['Question'] + " " + row['Options']
+        # qs = cur_prompt
+
+        ground_truth = all_data[index]["conversations"][1]["value"]
+        qs = all_data[index]["conversations"][0]["value"]
 
         if model.config.mm_use_im_start_end:
             qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + '\n' + qs
@@ -83,6 +85,7 @@ def eval_model(args):
 
         # Load the corresponding image
         photo_id = index+1
+        image_path = all_data[index]["image"]
         image = Image.open(image_path)
 
         input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
@@ -114,11 +117,12 @@ def eval_model(args):
         if outputs.endswith(stop_str):
             outputs = outputs[:-len(stop_str)]
         outputs = outputs.strip()
+        print(ground_truth, outputs)
 
         ans_id = shortuuid.uuid()
         ans_file.write(json.dumps({"question_id": photo_id,
                                    "prompt": cur_prompt,
-                                   "answer": row["Correct Answer"], 
+                                   "answer": ground_truth,
                                    "response": outputs,
                                    "answer_id": ans_id,
                                    "model_id": model_name,
