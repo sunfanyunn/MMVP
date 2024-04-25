@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 import torch
 import os
 import json
@@ -58,7 +59,12 @@ def eval_model(args):
     all_data = json.load(open(args.question_file, "r"))
     print('number of total entries in all_data', len(all_data))
     print('evaluating on 100 entries ...')
-    for index in range(100):
+
+    correct_cnt = 0
+    total_cnt = 0
+    for cnt in range(1000):
+        index = np.random.randint(0, len(all_data))
+        
 
         # Construct the 'prompts' string
         # image_path = os.path.join(args.directory, 'MMVP Images', f"{photo_id}.jpg")
@@ -71,9 +77,10 @@ def eval_model(args):
         # qs = cur_prompt
 
         ground_truth = all_data[index]["conversations"][1]["value"]
-        qs = all_data[index]["conversations"][0]["value"]
+        qs = all_data[index]["conversations"][0]["value"][8:]
 
         if model.config.mm_use_im_start_end:
+            assert False
             qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + '\n' + qs
         else:
             qs = DEFAULT_IMAGE_TOKEN + '\n' + qs
@@ -117,18 +124,25 @@ def eval_model(args):
         if outputs.endswith(stop_str):
             outputs = outputs[:-len(stop_str)]
         outputs = outputs.strip()
+
+        ### 
+        outputs = outputs.split("\n")[0]
         print(ground_truth, outputs)
 
-        ans_id = shortuuid.uuid()
-        ans_file.write(json.dumps({"question_id": photo_id,
-                                   "prompt": cur_prompt,
-                                   "answer": ground_truth,
-                                   "response": outputs,
-                                   "answer_id": ans_id,
-                                   "model_id": model_name,
-                                   }) + "\n")
-        ans_file.flush()
-    ans_file.close()
+        correct_cnt += (str(ground_truth) == str(outputs))
+        total_cnt += 1
+        print(f"total eval {cnt}, accuracy: {correct_cnt/total_cnt}")
+
+        #ans_id = shortuuid.uuid()
+        #ans_file.write(json.dumps({"question_id": photo_id,
+        #                           "prompt": qs,
+        #                           "answer": ground_truth,
+        #                           "response": outputs,
+        #                           "answer_id": ans_id,
+        #                           "model_id": model_name,
+        #                           }) + "\n")
+        #ans_file.flush()
+    #ans_file.close()
 
 
 if __name__ == "__main__":

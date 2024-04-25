@@ -11,7 +11,7 @@
 #SBATCH --account=viscam
 #################
 #set a job name
-#SBATCH --job-name="mmvp finetune"
+#SBATCH --job-name="task_lora mmvp"
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
 #SBATCH --output=../slurm_stdout/%j.out
@@ -60,33 +60,30 @@ model_name=llava-v1.5-7b
 version=rotation_v2
 cd LLaVA
 
-#!/bin/bash
-deepspeed  --master_port 29506 \
-    llava/train/train_mem.py \
+deepspeed --master_port 29505 llava/train/train_mem.py \
+    --lora_enable True --lora_r 128 --lora_alpha 256 \
     --deepspeed scripts/zero3.json \
-    --model_name_or_path lmsys/vicuna-13b-v1.5 \
+    --model_name_or_path liuhaotian/$model_name\
     --version v1 \
     --data_path /svl/u/sunfanyun/sceneVerse/preprocessed/ProcThor/all_data_$version.json \
     --image_folder / \
     --vision_tower openai/clip-vit-large-patch14-336 \
-    --pretrain_mm_mlp_adapter /svl/u/sunfanyun/GenLayout/third_party/MMVP/LLaVA/checkpoints/llava-v1.5-7b-rotation_v2-pretrain/mm_projector.bin \
-    --pretrain_dino_mm_mlp_adapter /svl/u/sunfanyun/GenLayout/third_party/MMVP/LLaVA/checkpoints/llava-v1.5-7b-rotation_v2-pretrain/dino_mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
+    --tune_mm_mlp_adapter True \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
-    --image_aspect_ratio pad \
     --bf16 True \
-    --output_dir ./checkpoints/$model_name-$version-finetune \
+    --output_dir ./checkpoints/$model_name-$version-finetune_task_lora \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 11 \
+    --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 2 \
+    --gradient_accumulation_steps 2\
     --evaluation_strategy "no" \
     --save_strategy "steps" \
-    --save_steps 50000 \
+    --save_steps 24000 \
     --save_total_limit 1 \
-    --learning_rate 2e-5 \
+    --learning_rate 1e-3 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
