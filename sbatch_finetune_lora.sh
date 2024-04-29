@@ -3,15 +3,15 @@
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling
 #################
 #partition name
-#SBATCH --partition=viscam
+#SBATCH --partition=aal
 #################
 #number of GPUs
-#SBATCH --gres=gpu:a6000:1
+#SBATCH --gres=gpu:l40s:3
 #SBATCH --cpus-per-task=4
-#SBATCH --account=viscam
+#SBATCH --account=aal
 #################
 #set a job name
-#SBATCH --job-name="mmvp finetune"
+#SBATCH --job-name="mmvp lora finetune"
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
 #SBATCH --output=../slurm_stdout/%j.out
@@ -56,15 +56,18 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate mmvp
 echo "env activated"
 
+model_base_name=lmsys/vicuna-7b-v1.5 
 model_name=llava-v1.5-7b
+model_path=/svl/u/sunfanyun/GenLayout/third_party/MMVP/LLaVA/checkpoints/llava-v1.5-7b-rotation_v2-pretrain/
 version=rotation_v2
 cd LLaVA
 
 #!/bin/bash
 deepspeed  --master_port 29506 \
     llava/train/train_mem.py \
+    --lora_enable True --lora_r 128 --lora_alpha 256 \
     --deepspeed scripts/zero3.json \
-    --model_name_or_path lmsys/vicuna-13b-v1.5 \
+    --model_name_or_path $model_base_name \
     --version v1 \
     --data_path /svl/u/sunfanyun/sceneVerse/preprocessed/ProcThor/all_data_$version.json \
     --image_folder / \
@@ -77,7 +80,7 @@ deepspeed  --master_port 29506 \
     --mm_use_im_patch_token False \
     --image_aspect_ratio pad \
     --bf16 True \
-    --output_dir ./checkpoints/$model_name-$version-finetune \
+    --output_dir ./checkpoints/$model_name-$version-finetune_lora \
     --num_train_epochs 1 \
     --per_device_train_batch_size 11 \
     --per_device_eval_batch_size 4 \

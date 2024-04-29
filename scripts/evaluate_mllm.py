@@ -19,6 +19,15 @@ import math
 import pandas as pd
 from PIL import Image
 import os
+import re
+
+def find_number(text):
+    pattern = r"\b-?\d+(\.\d+)?\b"
+    match = re.search(pattern, text)
+    if match:
+        return match.group(0)
+    else:
+        return "No number found in the text."
 
 
 def split_list(lst, n):
@@ -38,7 +47,9 @@ def eval_model(args):
     model_path = os.path.expanduser(args.model_path)
     model_name = get_model_name_from_path(model_path)
 
-    
+    #model_path = "MMVP/MoF_Models"
+    #args.model_base = None
+    #model_name = "liuhaotian/llava-v1.5-13b"
     tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, args.model_base, model_name)
     
     if args.directory:
@@ -128,6 +139,7 @@ def eval_model(args):
         ### 
         outputs = outputs.split("\n")[0]
         print(ground_truth, outputs)
+        outputs = str(find_number(outputs))
 
         correct_cnt += (str(ground_truth) == str(outputs))
         total_cnt += 1

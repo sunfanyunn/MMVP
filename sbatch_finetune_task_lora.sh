@@ -63,7 +63,7 @@ cd LLaVA
 deepspeed --master_port 29505 llava/train/train_mem.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 \
     --deepspeed scripts/zero3.json \
-    --model_name_or_path liuhaotian/$model_name\
+    --model_name_or_path liuhaotian/$model_name \
     --version v1 \
     --data_path /svl/u/sunfanyun/sceneVerse/preprocessed/ProcThor/all_data_$version.json \
     --image_folder / \
