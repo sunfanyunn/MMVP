@@ -7,6 +7,8 @@
 #
 #replace_llama_attn_with_flash_attn()
 
+import sys
+sys.path.append("/viscam/projects/GenLayout/GenLayout_sun/third_party/MMVP/LLaVA")
 from llava.train.train import train
 
 if __name__ == "__main__":

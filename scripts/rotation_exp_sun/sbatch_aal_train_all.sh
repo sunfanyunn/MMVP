@@ -1,4 +1,5 @@
 #!/bin/bash
+#!/bin/bash
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling
 #################
 #partition name
@@ -10,13 +11,13 @@
 #SBATCH --account=aal
 #################
 #set a job name
-#SBATCH --job-name="constraint_vlm train all"
+#SBATCH --job-name="mmvp finetune"
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
-#SBATCH --output=/vicam/projects/GenLayout/slurm_out/%j.stdout
+#SBATCH --output=../slurm_stdout/%j.out
 #################
 # a file for errors from the job
-#SBATCH --error=/viscam/projects/GenLayout/slurm_out/%j.stderr
+#SBATCH --error=../slurm_stderr/%j.out
 #################
 #time you think you need; default is 2 hours
 #format could be dd-hh:mm:ss, hh:mm:ss, mm:ss, or mm, 144
@@ -47,34 +48,26 @@ echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST
 echo "SLURM_NNODES"=$SLURM_NNODES
 echo "SLURMTMPDIR="$SLURMTMPDIR
 echo "working directory = "$SLURM_SUBMIT_DIR
-
 #now run normal bash commands
 #python your_command.py
 #sh /viscam/u/sunfanyun/GenLayout/scripts/train_data_preprocessing.sh $dataset
-#export HOME=/svl/u/sunfanyun
-export HOME=/viscam/projects/GenLayout
-#source ~/miniconda3/etc/profile.d/conda.sh
-#source /viscam/projects/GenLayout/miniconda3/envs/mmvp/bin/activate
-#conda activate mmvp
-#echo "env activated"
-#export PYTHONPATH=/viscam/projects/GenLayout/miniconda3/envs/mmvp/bin/python
+export HOME=/svl/u/sunfanyun
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate mmvp
+echo "env activated"
 
 model_name=llava-v1.5-7b
-version=constraint_vlm_v0
-
-working_directory=/viscam/projects/GenLayout/GenLayout_sun/third_party/MMVP/LLaVA
-output_dir=$working_directory/checkpoints/$model_name-$version-train_all
-cd $working_directory
+version=rotation_v2
+cd LLaVA
 
 #!/bin/bash
-#PWD=$directory deepspeed --master_port 29506 \
-/viscam/projects/GenLayout/miniconda3/envs/mmvp/bin/deepspeed  --master_port 29506 \
+deepspeed  --master_port 29506 \
     llava/train/train_mem.py \
-    --lora_enable True --lora_r 128 --lora_alpha 256 \
+    --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
     --deepspeed scripts/zero3.json \
     --model_name_or_path liuhaotian/$model_name \
     --version v1 \
-    --data_path /viscam/projects/GenLayout/GenLayout_sun/data/3d_front_all_v0.json \
+    --data_path /svl/u/sunfanyun/sceneVerse/preprocessed/ProcThor/all_data_$version.json \
     --image_folder / \
     --vision_tower openai/clip-vit-large-patch14-336 \
     --mm_projector_type mlp2x_gelu \
@@ -83,7 +76,7 @@ cd $working_directory
     --mm_use_im_patch_token False \
     --image_aspect_ratio pad \
     --bf16 True \
-    --output_dir $output_dir \
+    --output_dir ./checkpoints/$model_name-$version-train_all \
     --num_train_epochs 1 \
     --per_device_train_batch_size 11 \
     --per_device_eval_batch_size 4 \

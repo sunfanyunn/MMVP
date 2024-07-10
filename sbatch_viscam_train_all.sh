@@ -2,21 +2,21 @@
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling
 #################
 #partition name
-#SBATCH --partition=aal
+#SBATCH --partition=viscam
 #################
 #number of GPUs
-#SBATCH --gres=gpu:l40s:1
+#SBATCH --gres=gpu:a6000:2
 #SBATCH --cpus-per-task=4
-#SBATCH --account=aal
+#SBATCH --account=viscam
 #################
 #set a job name
-#SBATCH --job-name="constraint_vlm train all"
+#SBATCH --job-name="mmvp_train_all-constraint_vlm"
 #################
 #a file for job output, you can check job progress, append the job ID with %j to make it unique
-#SBATCH --output=/vicam/projects/GenLayout/slurm_out/%j.stdout
+#SBATCH --output=/viscam/projects/GenLayout/slurm_out/%x.%j.stdout
 #################
 # a file for errors from the job
-#SBATCH --error=/viscam/projects/GenLayout/slurm_out/%j.stderr
+#SBATCH --error=/viscam/projects/GenLayout/slurm_out/%x.%j.stderr
 #################
 #time you think you need; default is 2 hours
 #format could be dd-hh:mm:ss, hh:mm:ss, mm:ss, or mm, 144
@@ -52,16 +52,16 @@ echo "working directory = "$SLURM_SUBMIT_DIR
 #python your_command.py
 #sh /viscam/u/sunfanyun/GenLayout/scripts/train_data_preprocessing.sh $dataset
 #export HOME=/svl/u/sunfanyun
-export HOME=/viscam/projects/GenLayout
 #source ~/miniconda3/etc/profile.d/conda.sh
 #source /viscam/projects/GenLayout/miniconda3/envs/mmvp/bin/activate
 #conda activate mmvp
 #echo "env activated"
 #export PYTHONPATH=/viscam/projects/GenLayout/miniconda3/envs/mmvp/bin/python
 
+export HOME=/viscam/projects/GenLayout
 model_name=llava-v1.5-7b
 version=constraint_vlm_v0
-
+data_path=/viscam/projects/GenLayout/GenLayout_sun/data/3d_front_all_v0.json 
 working_directory=/viscam/projects/GenLayout/GenLayout_sun/third_party/MMVP/LLaVA
 output_dir=$working_directory/checkpoints/$model_name-$version-train_all
 cd $working_directory
@@ -74,7 +74,7 @@ cd $working_directory
     --deepspeed scripts/zero3.json \
     --model_name_or_path liuhaotian/$model_name \
     --version v1 \
-    --data_path /viscam/projects/GenLayout/GenLayout_sun/data/3d_front_all_v0.json \
+    --data_path $data_path \
     --image_folder / \
     --vision_tower openai/clip-vit-large-patch14-336 \
     --mm_projector_type mlp2x_gelu \
